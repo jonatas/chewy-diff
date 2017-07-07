@@ -71,10 +71,14 @@ module Chewy
     end
 
     def self.field_name(field)
-      if field.children.size > 2
-        field.children[2].children[0]
+      if field.type == :send 
+        if field.children.size > 2
+          field.children[2].children[0]
+        else
+          field.children[1]
+        end
       else
-        field.children[1]
+        field.children[0].children[-1].children[0]
       end
     end
 
@@ -85,15 +89,19 @@ module Chewy
 
       def fields
          @fields.children.select do |field|
-           %i[field field_with_crutch witchcraft!].include?(field.children[1])
+           if field.type == :block
+             field = field.children[0]
+           end
+           %i[field field_with_crutch witchcraft! crutch].include?(field.children[1])
          end
       end
 
       def index_name
-        if @index_name.type == :send
-           @index_name = @index_name.children.first
+        if @index_name.type == :const
+          @index_name.loc.expression.source
+        elsif @index_name.type == :send
+          @index_name.children[0].children[-1]
         end
-        @index_name.children.last
       end
     end
 

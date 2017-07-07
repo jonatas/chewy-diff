@@ -1,18 +1,18 @@
 require "spec_helper"
 
 RSpec.describe Chewy::Diff do
-  let(:index_before) { <<~RUBY }
-    class CitiesIndex < Chewy::Index
-      define_type City do
-        field :name, value: -> { name.strip }
-        field :popularity
-      end
-    end
-  RUBY
-
   context ".changes" do
 
     subject { Chewy::Diff.changes(index_before, index_after) }
+
+    let(:index_before) { <<~RUBY }
+      class CitiesIndex < Chewy::Index
+        define_type City do
+          field :name, value: -> { name.strip }
+          field :popularity
+        end
+      end
+    RUBY
 
     context 'equal files should return no difference' do
       let(:index_after) { index_before }
@@ -20,7 +20,7 @@ RSpec.describe Chewy::Diff do
       it { is_expected.to be_empty }
     end
 
-    context 'changed order but not the implementation' do
+    context 'changed fields order but not the implementation' do
       let(:index_after) { <<~RUBY }
         class CitiesIndex < Chewy::Index
           define_type City do
@@ -97,7 +97,7 @@ RSpec.describe Chewy::Diff do
       end
     end
 
-    context 'support crutches' do
+    context 'support field with crutch' do
       let(:index_after) { <<~RUBY }
         class CitiesIndex < Chewy::Index
           define_type City do
@@ -114,6 +114,24 @@ RSpec.describe Chewy::Diff do
         ])
       end
     end
+    context 'support crutches' do
+      let(:index_after) { <<~RUBY }
+        class CitiesIndex < Chewy::Index
+          define_type City do
+            field :name, value: -> { name.strip }
+            field :popularity
+            crutch :cities do |collection|
+              Crutches::Cities.new(collection)
+            end
+          end
+        end
+      RUBY
+
+      specify do
+        is_expected.to eq([:+, "City[:cities]"])
+      end
+    end
+
 
     context 'support type changes' do
       let(:index_after) { <<~RUBY }
