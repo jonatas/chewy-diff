@@ -146,5 +146,25 @@ RSpec.describe Chewy::Diff do
       end
     end
 
+    context 'file added' do
+      let(:index_before) { '' }
+      let(:index_after) { <<~RUBY }
+        class LocationIndex < Chewy::Index
+          define_type Location do
+            field :latitude
+            field :longitude
+          end
+        end
+      RUBY
+
+      specify do
+        is_expected.to eq({ :+ => "Location" })
+      end
+    end
+
+    context 'file removed' do
+      let(:index_after) { '' }
+      it { is_expected.to eq({ :- => "City" }) }
+    end
   end
 end

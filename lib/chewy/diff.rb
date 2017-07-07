@@ -49,6 +49,7 @@ module Chewy
 
     def self.analyser_for(ast)
       results = Fast.search '(block (send nil define_type $...) ... $...)', ast
+      return [] unless results
       results.each_slice(3).map do |index_name, fields, _|
         IndexAnalyzer.new(index_name, fields)
       end.flatten
