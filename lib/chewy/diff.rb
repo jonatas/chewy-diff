@@ -16,8 +16,9 @@ module Chewy
       from, to = initialize_analysers(ast_before, ast_after)
 
       output = []
+      output += check_settings_changes(ast_before, ast_after)
       output += fields_diff_between(from, to)
-      output += wrap_index_changes(from, to)
+      output += check_index_changes(from, to)
       output.flatten
     end
 
@@ -28,7 +29,7 @@ module Chewy
       end.compact
     end
 
-    def self.wrap_index_changes(from, to)
+    def self.check_index_changes(from, to)
       indices_from = from.map{|e|e.index_name.to_s}
       indices_to = to.map{|e|e.index_name.to_s}
       indices_added = indices_to - indices_from
@@ -44,11 +45,31 @@ module Chewy
        [analyser_for(from), analyser_for(to)]
     end
 
+    def self.check_settings_changes(ast_before, ast_after)
+      from, to = settings_checker_for(ast_before), settings_checker_for(ast_after)
+      added = to - from
+      removed = from - to
+      [].tap do |output|
+        output << [:+, added] if added.any?
+        output << [:-, removed] if removed.any?
+      end
+    end
+
+    def self.settings_checker_for(ast)
+      [].tap do |result|
+        settings = Fast.search('(send nil settings $...)', ast)
+        if settings&.any?
+          # TODO analyse settings configuration deeply
+          class_name = Fast.search('(class (const nil $_) ... ...)', ast).flatten.first
+          result << "#{class_name}#settings"
+        end
+      end
+    end
     def self.analyser_for(ast)
       results = Fast.search '(block (send nil define_type $...) ... $...)', ast
       return [] unless results
       results.each_slice(3).map do |index_name, fields, _|
-        IndexAnalyzer.new(index_name, fields)
+        DefinedTypeAnalyser.new(index_name, fields)
       end.flatten
     end
 
@@ -80,7 +101,7 @@ module Chewy
       end
     end
 
-    class IndexAnalyzer
+    class DefinedTypeAnalyser
       MACROS_SUPPORTED = %i[field field_with_crutch witchcraft! crutch include]
       def initialize index_name, fields
         @index_name, @fields = index_name, fields
@@ -107,6 +128,5 @@ module Chewy
     def self.ast(code)
       Parser::CurrentRuby.parse(code)
     end
-
   end
 end

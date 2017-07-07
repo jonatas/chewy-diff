@@ -150,6 +150,63 @@ RSpec.describe Chewy::Diff do
       it { is_expected.to eq([:+, "City[:ChewyCityFields, :witchcraft!]"]) }
     end
 
+    context 'support setting addition' do
+      let(:index_after) { <<~RUBY }
+        class CitiesIndex < Chewy::Index
+          settings analysis: {
+            analyzer: {
+              name: {
+                tokenizer: 'standard',
+                filter: %w[lowercase icu_folding]
+              }
+            }
+          }
+
+          define_type City do
+            field :name, value: -> { name.strip }
+            field :popularity
+          end
+        end
+      RUBY
+
+      it { is_expected.to eq([:+, "CitiesIndex#settings"]) }
+    end
+
+    context 'support settings removal' do
+      let(:index_before) { <<~RUBY }
+        class CitiesIndex < Chewy::Index
+
+          settings analysis: {
+            analyzer: {
+              name: {
+                tokenizer: 'standard',
+                filter: %w[lowercase icu_folding]
+              }
+            }
+          }
+
+          define_type City do
+            field :name
+            field :priority
+          end
+
+          witchcraft!
+        end
+      RUBY
+
+      let(:index_after) { <<~RUBY }
+        class CitiesIndex < Chewy::Index
+          define_type City do
+            field :name
+            field :priority
+          end
+
+          witchcraft!
+        end
+      RUBY
+
+      it { is_expected.to eq([:-, "CitiesIndex#settings"]) }
+    end
 
     context 'support type changes' do
       let(:index_after) { <<~RUBY }
