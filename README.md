@@ -43,6 +43,59 @@ index_after_change = <<~RUBY
 RUBY
 
 Chewy::Diff.changes(index_before, index_after) # => [:-, "City[:name]", :+, "City[:name]"]
+
+```
+
+It supports  `define_type` with nested `witchcraft!`, `field`, and
+`field_with_crutch` macros.
+
+Also support simple `settings` verification.
+
+```ruby
+
+index_before = <<~RUBY
+  class CitiesIndex < Chewy::Index
+    define_type City do
+      field :name
+      field :state
+      field :latitude
+      field :longitude
+    end
+
+    define_type Location do
+      field :name
+      witchcraft!
+    end
+  end
+RUBY
+
+index_after = <<~RUBY
+  class CityIndex < Chewy::Index
+    settings analysis: {
+      analyzer: {
+        sorted: { tokenizer: 'keyword', filter: %w[lowercase icu_folding] },
+      }
+    }
+
+    define_type City do
+      field :name
+      field :state
+      field :location
+    end
+
+    define_type Location do
+      field :latitude
+      field :longitude
+    end
+  end
+RUBY
+
+Chewy::Diff.changes(index_before, index_after)
+# => [:+, "CityIndex#settings",
+#     :-, "City[:latitude, :longitude]",
+#     :+, "City[:location]",
+#     :-, "Location[:name, :witchcraft!]",
+#     :+, "Location[:latitude, :longitude]"]
 ```
 
 ## Development
