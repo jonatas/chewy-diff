@@ -1,8 +1,6 @@
 # Chewy::Diff
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/chewy/diff`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+Chewy diff allows you to verify changes in indices:
 
 ## Installation
 
@@ -22,7 +20,30 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Use two files as stream and check the difference in the input:
+
+```ruby
+
+index_before = <<~RUBY
+  class CitiesIndex < Chewy::Index
+    define_type City do
+      field :name, value: -> { name.strip }
+      field :popularity
+    end
+  end
+RUBY
+
+index_after_change = <<~RUBY
+  class CitiesIndex < Chewy::Index
+    define_type City do
+      field :name, value: -> { name.upcase }
+      field :popularity
+    end
+  end
+RUBY
+
+Chewy::Diff.changes(index_before, index_after) # => [:-, "City[:name]", :+, "City[:name]"]
+```
 
 ## Development
 
