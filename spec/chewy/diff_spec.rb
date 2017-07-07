@@ -57,7 +57,7 @@ RSpec.describe Chewy::Diff do
         end
       RUBY
 
-      it { is_expected.to eq({ :+ => "City[:witchcraft!]" })}
+      it { is_expected.to eq([ :+, "City[:witchcraft!]" ])}
     end
 
     context 'changed field implementation' do
@@ -71,7 +71,10 @@ RSpec.describe Chewy::Diff do
       RUBY
 
       specify do
-        is_expected.to eq({ :- => "City[:name]", :+ => "City[:name]" })
+        is_expected.to eq(
+          [:-, "City[:name]",
+           :+, "City[:name]"]
+        )
       end
     end
 
@@ -87,10 +90,10 @@ RSpec.describe Chewy::Diff do
       RUBY
 
       specify do
-        is_expected.to eq({
-           :- => "City[:popularity]",
-           :+ => "City[:latitude, :longitude]"
-        })
+        is_expected.to eq([
+           :-, "City[:popularity]",
+           :+, "City[:latitude, :longitude]"
+        ])
       end
     end
 
@@ -105,10 +108,10 @@ RSpec.describe Chewy::Diff do
       RUBY
 
       specify do
-        is_expected.to eq({
-           :- => "City[:popularity]",
-           :+ => "City[:location]"
-        })
+        is_expected.to eq([
+          :-, "City[:popularity]",
+          :+, "City[:location]"
+        ])
       end
     end
 
@@ -127,7 +130,7 @@ RSpec.describe Chewy::Diff do
       RUBY
 
       specify do
-        is_expected.to eq({ :+ => "State" })
+        is_expected.to eq([ :+, "State" ])
       end
     end
 
@@ -142,7 +145,7 @@ RSpec.describe Chewy::Diff do
       RUBY
 
       specify do
-        is_expected.to eq({ :+ => "Location", :- => "City" })
+        is_expected.to eq([ :+, "Location", :-, "City" ])
       end
     end
 
@@ -158,13 +161,13 @@ RSpec.describe Chewy::Diff do
       RUBY
 
       specify do
-        is_expected.to eq({ :+ => "Location" })
+        is_expected.to eq([:+ , "Location"])
       end
     end
 
     context 'file removed' do
       let(:index_after) { '' }
-      it { is_expected.to eq({ :- => "City" }) }
+      it { is_expected.to eq([:-, "City"]) }
     end
   end
 end

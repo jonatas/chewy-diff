@@ -28,7 +28,7 @@ module Chewy
 
       output += index_changes.flatten if index_changes.any?
 
-      Hash[*output]
+      output.flatten
     end
 
     def self.wrap_index_changes(froms, tos)
