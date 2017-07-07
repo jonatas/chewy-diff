@@ -13,27 +13,24 @@ module Chewy
 
       return [] if ast_before == ast_after
 
-      froms, tos = initialize_analysers(ast_before, ast_after)
+      from, to = initialize_analysers(ast_before, ast_after)
+
       output = []
-      froms.each_with_index do |from, i|
-        to = tos.find{|t|t.index_name == from.index_name}
-        if to
-          if result = diff(from, to)
-            output << result
-          end
-        end
-      end
-
-      index_changes = wrap_index_changes(froms, tos)
-
-      output += index_changes.flatten if index_changes.any?
-
+      output += fields_diff_between(from, to)
+      output += wrap_index_changes(from, to)
       output.flatten
     end
 
-    def self.wrap_index_changes(froms, tos)
-      indices_from = froms.map{|e|e.index_name.to_s}
-      indices_to = tos.map{|e|e.index_name.to_s}
+    def self.fields_diff_between from, tos
+      from.map do |original|
+        to = tos.find{|t|t.index_name == original.index_name}
+        diff(original, to) if to
+      end.compact
+    end
+
+    def self.wrap_index_changes(from, to)
+      indices_from = from.map{|e|e.index_name.to_s}
+      indices_to = to.map{|e|e.index_name.to_s}
       indices_added = indices_to - indices_from
       indices_removed = indices_from - indices_to
 
