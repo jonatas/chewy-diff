@@ -1,8 +1,7 @@
 require "chewy/diff/version"
 require 'parser'
 require 'parser/current'
-require '../../fast/lib/fast'
-require 'pry'
+require 'fast'
 
 module Chewy
   module Diff
