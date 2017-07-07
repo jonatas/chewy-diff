@@ -114,6 +114,7 @@ RSpec.describe Chewy::Diff do
         ])
       end
     end
+
     context 'support crutches' do
       let(:index_after) { <<~RUBY }
         class CitiesIndex < Chewy::Index
@@ -130,6 +131,23 @@ RSpec.describe Chewy::Diff do
       specify do
         is_expected.to eq([:+, "City[:cities]"])
       end
+    end
+
+    context 'support include modules' do
+      let(:index_after) { <<~RUBY }
+        class CitiesIndex < Chewy::Index
+          define_type City do
+            field :name, value: -> { name.strip }
+            field :popularity
+
+            include ChewyCityFields
+
+            witchcraft!
+          end
+        end
+      RUBY
+
+      it { is_expected.to eq([:+, "City[:ChewyCityFields, :witchcraft!]"]) }
     end
 
 

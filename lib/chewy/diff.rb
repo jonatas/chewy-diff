@@ -72,8 +72,9 @@ module Chewy
 
     def self.field_name(field)
       if field.type == :send 
-        if field.children.size > 2
-          field.children[2].children[0]
+        if field.children[2]
+          name = field.children[2]
+          name.children[0] || name.children[1]
         else
           field.children[1]
         end
@@ -83,6 +84,7 @@ module Chewy
     end
 
     class IndexAnalyzer
+      MACROS_SUPPORTED = %i[field field_with_crutch witchcraft! crutch include]
       def initialize index_name, fields
         @index_name, @fields = index_name, fields
       end
@@ -92,15 +94,15 @@ module Chewy
            if field.type == :block
              field = field.children[0]
            end
-           %i[field field_with_crutch witchcraft! crutch].include?(field.children[1])
-         end
+           MACROS_SUPPORTED.include?(field.children[1])
+         end.compact
       end
 
       def index_name
         if @index_name.type == :const
           @index_name.loc.expression.source
         elsif @index_name.type == :send
-          @index_name.children[0].children[-1]
+          @index_name.children[0].children.last
         end
       end
     end
