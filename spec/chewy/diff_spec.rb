@@ -60,7 +60,6 @@ RSpec.describe Chewy::Diff do
       it { is_expected.to eq({ :+ => "City[:witchcraft!]" })}
     end
 
-
     context 'changed field implementation' do
       let(:index_after) { <<~RUBY }
         class CitiesIndex < Chewy::Index
@@ -110,6 +109,40 @@ RSpec.describe Chewy::Diff do
            :- => "City[:popularity]",
            :+ => "City[:location]"
         })
+      end
+    end
+
+    context 'support type changes' do
+      let(:index_after) { <<~RUBY }
+        class CitiesIndex < Chewy::Index
+          define_type City do
+            field :name, value: -> { name.strip }
+            field :popularity
+          end
+
+          define_type State do
+            field :name
+          end
+        end
+      RUBY
+
+      specify do
+        is_expected.to eq({ :+ => "State" })
+      end
+    end
+
+    context 'support type changes' do
+      let(:index_after) { <<~RUBY }
+        class CitiesIndex < Chewy::Index
+          define_type Location do
+            field :name, value: -> { name.strip }
+            field :popularity
+          end
+        end
+      RUBY
+
+      specify do
+        is_expected.to eq({ :+ => "Location", :- => "City" })
       end
     end
 
